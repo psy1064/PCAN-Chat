@@ -47,6 +47,7 @@ bool PCANComm::Open(cantp_handle ch, CANSettingParam &param)
     }
 
     initmapping(param.CANID, param.FlowID);
+    writecanID = param.CANID;
 
     bResult = true;
 

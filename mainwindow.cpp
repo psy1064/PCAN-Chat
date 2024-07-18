@@ -146,9 +146,9 @@ void MainWindow::initConnect()
                     while(bIsRunning) {
                         while ( !readMsgQueue->isEmpty() ) {
                             auto rx_msg = readMsgQueue->dequeue();
-                            QString sMsg = QTime::currentTime().toString("[hh:mm:ss.zzz]");
+                            QString sMsg = QTime::currentTime().toString("[hh:mm:ss.zzz] (ID : %1,").arg(QString::asprintf("0x%X", rx_msg.can_info.can_id));
                             if ( rx_msg.type == PCANTP_MSGTYPE_CANFD ) {
-                                sMsg.append(QString(" %1 - %2")
+                                sMsg.append(QString(" %1) - %2")
                                                 .arg("CANFD")
                                                 .arg(QString(reinterpret_cast<char*>(rx_msg.msgdata.canfd->data))));
                                 // CAN-FD로 받는 경우 데이터 뒤에 "\0" 데이터가 들어와서 따로 처리 필요 X
@@ -158,7 +158,7 @@ void MainWindow::initConnect()
                                 QString sData = QString(reinterpret_cast<char*>(rx_msg.msgdata.isotp->data));
                                 sData.resize(nSize);
 
-                                sMsg.append(QString(" %1 - %2")
+                                sMsg.append(QString(" %1) - %2")
                                                 .arg("ISOTP")
                                                 .arg(sData));
                             }

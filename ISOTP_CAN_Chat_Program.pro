@@ -44,7 +44,7 @@ win32: LIBS += -L$$PWD/PCAN/ -lPCAN-ISO-TP
 win32:!win32-g++: PRE_TARGETDEPS += $$PWD/PCAN/PCAN-ISO-TP.lib
 else:win32-g++: PRE_TARGETDEPS += $$PWD/PCAN/libPCAN-ISO-TP.a
 
-DESTDIR = $$PWD
+DESTDIR = $$PWD/EXE
 
 CONFIG(release, debug|release): {
     TARGET = CAN_Chatting

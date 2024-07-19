@@ -1,0 +1,7 @@
+.qmake.stash
+.qtc_clangd/
+*_d.*
+Makefile*
+debug/
+release/
+ui_*.h

@@ -118,6 +118,7 @@ void MainWindow::initConnect()
         writeSetting(Key::STmin, settingParam.STmin);
         writeSetting(Key::CANID, settingParam.CANID);
         writeSetting(Key::FlowID, settingParam.FlowID);
+        writeSetting(Key::CANDL, settingParam.CANDL);
     });
 
     connect ( ui->btnOpen, &QPushButton::clicked, [&] {
@@ -172,7 +173,9 @@ void MainWindow::initConnect()
                     }
                 });
             } else {
-                if ( comm != nullptr ) { delete comm; }
+                if ( comm != nullptr ) {
+                    delete comm;
+                }
 
             }
         } else if ( ui->btnOpen->text().toLower() == "close" ) {
@@ -180,7 +183,10 @@ void MainWindow::initConnect()
             readQueueFuture.get();
             readDataFuture.get();
 
-            if ( comm != nullptr ) { delete comm; }
+            if ( comm != nullptr ) {
+                comm->Close();
+                delete comm;
+            }
             if ( readMsgQueue != nullptr ) { delete readMsgQueue; }
 
             ui->btnOpen->setText("Open");
@@ -204,6 +210,7 @@ void MainWindow::loadCANSettingParam()
     settingParam.STmin      = getSetting(Key::STmin).toInt();
     settingParam.CANID      = getSetting(Key::CANID).toInt();
     settingParam.FlowID     = getSetting(Key::FlowID).toInt();
+    settingParam.CANDL      = getSetting(Key::CANDL).toInt();
 
     if ( getSetting(Key::CANType).toString() == "CANFD" ) {
         ui->rbCANFD->setChecked(true);
@@ -216,15 +223,13 @@ void MainWindow::loadCANSettingParam()
 
 void MainWindow::writeMessage()
 {
-    if ( comm == nullptr ) { return; }
+    if ( comm == nullptr || ui->lineEdit->text().isEmpty() ) { return; }
 
     comm->Write(ui->lineEdit->text().toLocal8Bit().data(),
                     ui->lineEdit->text().toLocal8Bit().size(),
                     ui->rbCANFD->isChecked());
     ui->lineEdit->clear();
     writeSetting(Key::CANType, ui->rbISOTP->isChecked() ? "ISOTP" : "CANFD" );
-
-
 }
 
 void MainWindow::writeSetting(const QString &sKey, const QVariant &qValue)

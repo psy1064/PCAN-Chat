@@ -7,6 +7,10 @@ CANSettingDialog::CANSettingDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    for ( int i=1; i < 16; i++ ) {
+        ui->cbDataLength->addItem(QString::number(ConvertDLtoSize(i)), i);
+    }
+
     setWindowTitle("CAN Setting");
 }
 
@@ -22,6 +26,7 @@ CANSettingParam &CANSettingDialog::getParam()
     settingResult.FlowID    = ui->sbFlowID->value();
     settingResult.BlockSize = ui->sbBlockSize->value();
     settingResult.STmin     = ui->sbSTmin->value();
+    settingResult.CANDL     = ui->cbDataLength->currentData(Qt::UserRole).toInt();
 
     return settingResult;
 }
@@ -38,4 +43,5 @@ void CANSettingDialog::setParam(CANSettingParam &setting)
     ui->sbFlowID->setValue(setting.FlowID);
     ui->sbBlockSize->setValue(setting.BlockSize);
     ui->sbSTmin->setValue(setting.STmin);
+    ui->cbDataLength->setCurrentIndex(setting.CANDL - 1);   // CAN DL 값은 1부터 시작
 }

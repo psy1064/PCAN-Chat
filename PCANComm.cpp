@@ -20,8 +20,7 @@ bool PCANComm::Open(cantp_handle ch, CANSettingParam &param)
         return bResult;
     }
 
-    BYTE p = CAN_TX_DL;
-    status = CANTP_SetValue_2016(channel, PCANTP_PARAMETER_CAN_TX_DL, &p, 1);
+    status = CANTP_SetValue_2016(channel, PCANTP_PARAMETER_CAN_TX_DL, &param.CANDL, 1);
     if (!CANTP_StatusIsOk_2016(status)) {
         debug(QString::asprintf("Failed to configure parameter 'PCANTP_PARAMETER_CAN_TX_DL' (sts=0x%04X).", status));
         return bResult;

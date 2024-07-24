@@ -9,6 +9,7 @@
 
 #include <PCANComm.h>
 #include <Common.h>
+#include <CmdHistoryBuf.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -47,6 +48,9 @@ private:
     PCANComm* comm;
     QQueue<cantp_msg>* readMsgQueue;
     bool bIsRunning;
+
+    CommandHistoryBuf* cmdhistoryBuf;
+
     std::future<void> readDataFuture;
     std::future<void> readQueueFuture;
 

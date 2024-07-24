@@ -45,7 +45,7 @@ void PCANChannelComboboxHandle::addPCANChanneltoComboBox(QComboBox* pComboBox)
             TPCANChannelInformation* pChannels = new TPCANChannelInformation[nChannelCount];
             if ( CAN_GetValue(PCAN_NONEBUS, PCAN_ATTACHED_CHANNELS, pChannels, nChannelCount * sizeof(TPCANChannelInformation)) == PCAN_ERROR_OK) {
                 for (int i=0; i<nChannelCount; i++ ) {
-                    if ( pChannels[i].channel_condition == PCAN_CHANNEL_AVAILABLE ) {
+                    if ( pChannels[i].channel_condition == PCAN_CHANNEL_PCANVIEW ) {
                         int nUSBChannelID = 0;
                         if ( pChannels[i].channel_handle >= PCAN_USBBUS1 && pChannels[i].channel_handle <= PCAN_USBBUS8 ) {
                             nUSBChannelID = pChannels[i].channel_handle - 0x50U;
@@ -71,6 +71,7 @@ MainWindow::MainWindow(QWidget *parent)
     , comm(nullptr)
     , readMsgQueue(nullptr)
     , bIsRunning(false)
+    , cmdhistoryBuf(new CommandHistoryBuf(HISTORY_BUF_SIZE))
 {
     ui->setupUi(this);
 
@@ -86,13 +87,21 @@ MainWindow::~MainWindow()
     bIsRunning = false;
 
     delete ui;
+    delete cmdhistoryBuf;
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    if ( event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return ) {
-        writeMessage();
+    if ( event->modifiers() == Qt::ControlModifier ) {
+        if ( event->key() == Qt::Key_Return ) {
+            writeMessage();
+        } else if ( event->key() == Qt::Key_Up ) {
+            ui->textEdit->setPlainText(cmdhistoryBuf->getPreCommand());
+        } else if ( event->key() == Qt::Key_Down ) {
+            ui->textEdit->setPlainText(cmdhistoryBuf->getNextCommand());
+        }
     }
+
 }
 
 void MainWindow::initForm()
@@ -113,12 +122,13 @@ void MainWindow::initConnect()
         settingParam = pDialog->getParam();
         delete pDialog;
 
-        writeSetting(Key::Bitrate, QString(settingParam.sBitrate));
-        writeSetting(Key::BlockSize, settingParam.BlockSize);
-        writeSetting(Key::STmin, settingParam.STmin);
-        writeSetting(Key::CANID, settingParam.CANID);
-        writeSetting(Key::FlowID, settingParam.FlowID);
-        writeSetting(Key::CANDL, settingParam.CANDL);
+        writeSetting(Key::Bitrate,      QString(settingParam.sBitrate));
+        writeSetting(Key::BlockSize,    settingParam.BlockSize);
+        writeSetting(Key::STmin,        settingParam.STmin);
+        writeSetting(Key::CANID,        settingParam.CANID);
+        writeSetting(Key::FlowID,       settingParam.FlowID);
+        writeSetting(Key::CANDL,        settingParam.CANDL);
+        writeSetting(Key::AddressType,  settingParam.addrStandard);
     });
 
     connect ( ui->btnOpen, &QPushButton::clicked, [&] {
@@ -205,12 +215,13 @@ void MainWindow::initConnect()
 
 void MainWindow::loadCANSettingParam()
 {
-    settingParam.sBitrate   = getSetting(Key::Bitrate).toString();
-    settingParam.BlockSize  = getSetting(Key::BlockSize).toInt();
-    settingParam.STmin      = getSetting(Key::STmin).toInt();
-    settingParam.CANID      = getSetting(Key::CANID).toInt();
-    settingParam.FlowID     = getSetting(Key::FlowID).toInt();
-    settingParam.CANDL      = getSetting(Key::CANDL).toInt();
+    settingParam.sBitrate       = getSetting(Key::Bitrate).toString();
+    settingParam.BlockSize      = getSetting(Key::BlockSize).toInt();
+    settingParam.STmin          = getSetting(Key::STmin).toInt();
+    settingParam.CANID          = getSetting(Key::CANID).toInt();
+    settingParam.FlowID         = getSetting(Key::FlowID).toInt();
+    settingParam.CANDL          = getSetting(Key::CANDL).toInt();
+    settingParam.addrStandard   = getSetting(Key::AddressType).toBool();
 
     if ( getSetting(Key::CANType).toString() == "CANFD" ) {
         ui->rbCANFD->setChecked(true);
@@ -223,12 +234,15 @@ void MainWindow::loadCANSettingParam()
 
 void MainWindow::writeMessage()
 {
-    if ( comm == nullptr || ui->lineEdit->text().isEmpty() ) { return; }
+    if ( comm == nullptr || ui->textEdit->toPlainText().isEmpty() ) { return; }
 
-    comm->Write(ui->lineEdit->text().toLocal8Bit().data(),
-                    ui->lineEdit->text().toLocal8Bit().size(),
+    comm->Write(ui->textEdit->toPlainText().toLocal8Bit().data() + 0x00,
+                    ui->textEdit->toPlainText().toLocal8Bit().size() + 1,
                     ui->rbCANFD->isChecked());
-    ui->lineEdit->clear();
+    // 데이터 뒤에 "\n" 추가
+    cmdhistoryBuf->insert( ui->textEdit->toPlainText() );
+
+    ui->textEdit->clear();
     writeSetting(Key::CANType, ui->rbISOTP->isChecked() ? "ISOTP" : "CANFD" );
 }
 

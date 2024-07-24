@@ -11,6 +11,8 @@
 constexpr const char* bitrate = "f_clock_mhz=40,nom_brp=5,nom_tseg1=10,nom_tseg2=5,nom_sjw=4,data_brp=2,data_tseg1=6,data_tseg2=3,data_sjw=3";
 
 const QString saveFileName = "setting.ini";
+const uint StandardAddrMax = 0x7FF;
+const uint ExtendedAddrMax = 0x1FFFFFFF;
 
 namespace Key {
     static QString Bitrate      = "Bitrate";
@@ -20,6 +22,7 @@ namespace Key {
     static QString FlowID       = "FlowID";
     static QString CANType      = "CANType";
     static QString CANDL        = "CANDL";
+    static QString AddressType  = "AdressType";
 };
 
 typedef struct _CANSettingParam {
@@ -29,6 +32,7 @@ typedef struct _CANSettingParam {
     uint16_t    STmin;
     uint16_t    BlockSize;
     uchar       CANDL;
+    bool        addrStandard;
 
     _CANSettingParam() { memset(this, 0x00, sizeof(_CANSettingParam)); }
 } CANSettingParam;

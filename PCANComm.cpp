@@ -45,15 +45,16 @@ bool PCANComm::Open(cantp_handle ch, CANSettingParam &param)
         return bResult;
     }
 
-    initmapping(param.CANID, param.FlowID);
+    initmapping(param.CANID, param.FlowID, param.addrStandard);
     writecanID = param.CANID;
+    isStandard = param.addrStandard;
 
     bResult = true;
 
     return bResult;
 }
 
-void PCANComm::initmapping(uint32_t CANID, uint32_t FlowID)
+void PCANComm::initmapping(uint32_t CANID, uint32_t FlowID, bool isStandard)
 {
     cantp_mapping mapping_phys_rx, mapping_phys_tx;
 
@@ -64,7 +65,7 @@ void PCANComm::initmapping(uint32_t CANID, uint32_t FlowID)
     // configure a mapping to transmit physical message
     mapping_phys_rx.can_id = FlowID;
     mapping_phys_rx.can_id_flow_ctrl = CANID;
-    mapping_phys_rx.can_msgtype = PCANTP_CAN_MSGTYPE_EXTENDED;
+    isStandard ? mapping_phys_rx.can_msgtype = PCANTP_CAN_MSGTYPE_STANDARD : mapping_phys_rx.can_msgtype = PCANTP_CAN_MSGTYPE_EXTENDED;
     mapping_phys_rx.netaddrinfo.format = PCANTP_ISOTP_FORMAT_NORMAL;
     mapping_phys_rx.netaddrinfo.msgtype = PCANTP_ISOTP_MSGTYPE_DIAGNOSTIC;
     mapping_phys_rx.netaddrinfo.target_type = PCANTP_ISOTP_ADDRESSING_PHYSICAL;
@@ -127,7 +128,8 @@ void PCANComm::Write(const char *pData, int nSize, bool isFD)
 {
     cantp_msg tx_msg;
 
-    cantp_can_msgtype msgtype = PCANTP_CAN_MSGTYPE_EXTENDED;
+    cantp_can_msgtype msgtype;
+    isStandard ? msgtype = PCANTP_CAN_MSGTYPE_STANDARD : msgtype =PCANTP_CAN_MSGTYPE_EXTENDED;
     msgtype |= PCANTP_CAN_MSGTYPE_FD;
     msgtype |= PCANTP_CAN_MSGTYPE_BRS;
     // 29 bit 주소 형식 & CAN-FD, BRS 사용

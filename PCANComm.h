@@ -15,7 +15,7 @@ public:
     void Close();
     void Read();
     void Write(const char* pData, int nSize, bool isFD);
-    void initmapping(uint32_t CANID, uint32_t FlowID);
+    void initmapping(uint32_t CANID, uint32_t FlowID, bool isStandard);
 
     void setReadDataQueue(QQueue<cantp_msg>* q) { readMsgQueue = q; }
 private:
@@ -28,6 +28,7 @@ private:
 
     uint32_t writecanID;
     uint32_t readcanID;
+    bool isStandard;
 
     void readCallback(cantp_msg& rx_msg);
     void debug(const QString& sMsg) { QMessageBox::warning(parent, "PCAN Comm", sMsg); }

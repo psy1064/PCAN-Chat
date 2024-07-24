@@ -16,6 +16,7 @@ SOURCES += \
 
 HEADERS += \
     CANSettingDialog.h \
+    CmdHistoryBuf.h \
     Common.h \
     PCAN/PCAN-ISO-TP_2016.h \
     PCAN/PCANBasic.h \
